@@ -8,6 +8,7 @@
   "license": "MIT",
   "scripts": {
     "build": "script/build",
+    "install": "script/build",
     "prepublishOnly": "script/build"
   },
   "devDependencies": {
