@@ -8,7 +8,7 @@
   "license": "MIT",
   "scripts": {
     "build": "script/build",
-    "install": "script/build",
+    "install": "tsc && rollup -c",
     "prepublishOnly": "script/build"
   },
   "devDependencies": {
