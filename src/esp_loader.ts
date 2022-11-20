@@ -117,22 +117,30 @@ export class ESPLoader extends EventTarget {
       this.logger.debug("Starting read loop");
     }
 
-    this._reader = this.port.readable!.getReader();
-
+    let retries = 10;
     try {
+      this._reader = this.port.readable!.getReader();
       while (true) {
-        const { value, done } = await this._reader.read();
-        if (done) {
-          this._reader.releaseLock();
-          break;
+        try {
+          const { value, done } = await this._reader.read();
+          if (done) {
+            this._reader.releaseLock();
+            break;
+          }
+          if (!value || value.length === 0) {
+            continue;
+          }
+          this._inputBuffer.push(...Array.from(value));          
+        } catch (err){
+          console.error("read loop issue: " + JSON.stringify(err));
+          retries -= 1;
+          if (!retries) break;
+          await new Promise(resolve => setTimeout(resolve, 100));
+          this._reader = this.port.readable!.getReader();
         }
-        if (!value || value.length === 0) {
-          continue;
-        }
-        this._inputBuffer.push(...Array.from(value));
       }
     } catch (err) {
-      console.error("Read loop got disconnected");
+      console.error("Read loop got disconnected. err: " + JSON.stringify(err));
     }
     // Disconnected!
     this.connected = false;
